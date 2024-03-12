@@ -8,6 +8,8 @@ import model.UserResponse;
 import org.hamcrest.CoreMatchers;
 
 public class UserClient {
+    private static final String REGISTER_ENDPOINT = "/api/auth/register";
+    private static final String USER_ENDPOINT = "/api/auth/user";
 
     @Step("Создание пользователя")
     public UserResponse createUser(User user) {
@@ -16,7 +18,7 @@ public class UserClient {
                 .header("Content-Type", "application/json")
                 .body(user)
                 .when()
-                .post("/api/auth/register")
+                .post(REGISTER_ENDPOINT)
                 .then()
                 // Получаем ответ
                 .statusCode(200)
@@ -36,7 +38,7 @@ public class UserClient {
         RestAssured.given()
                 .header("Authorization", accessToken) // Используем токен доступа в заголовке Authorization
                 .when()
-                .delete("/api/auth/user")
+                .delete(USER_ENDPOINT)
                 .then()
                 .statusCode(202)
                 .body("success", CoreMatchers.equalTo(true));

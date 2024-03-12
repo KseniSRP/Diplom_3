@@ -8,6 +8,10 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Paths;
+
 import static org.junit.internal.Classes.getClass;
 
 
@@ -20,28 +24,46 @@ public class BaseTest {
 
     @Before
     public void setUp() {
-        /* Для запуска Yandex браузера
-        String driverPath = getClass().getClassLoader().getResource("yandexdriver").getPath();
-        System.setProperty("webdriver.chrome.driver", driverPath);
+
+         final String BASE_URL = "https://stellarburgers.nomoreparties.site";
+        // Установка базового URI для RestAssured
+         RestAssured.baseURI = BASE_URL;
+
+        // Дефолтное значение для браузера
+        String browserName = System.getProperty("browser", "chrome");
+
+        // Получение пути к драйверу в зависимости от выбранного браузера при запуске тестов
+        String driverPath = "";
+        if (browserName.equalsIgnoreCase("yandex")) {
+            driverPath = "/yandexdriver"; // относительный путь к Yandex драйверу
+        } else { // Для Chrome и других браузеров
+            driverPath = "/chromedriver"; // относительный путь к Chrome драйверу
+        }
+
+        try {
+            // Загрузка пути к драйверу из ресурсов
+            URL driverUrl = BaseTest.class.getResource(driverPath);
+            if (driverUrl == null) {
+                throw new RuntimeException("Не удалось найти драйвер в папке ресурсов");
+            }
+            String driverAbsolutePath = Paths.get(driverUrl.toURI()).toString();
+
+            // Установка системной переменной для указания пути к драйверу
+            System.setProperty("webdriver.chrome.driver", driverAbsolutePath);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Ошибка при обработке URI драйвера", e);
+        }
+
+        // Настройка и запуск WebDriver
         ChromeOptions options = new ChromeOptions();
-        options.setBinary("/Applications/Yandex.app/Contents/MacOS/Yandex");
+        if (browserName.equalsIgnoreCase("yandex")) {
+            options.setBinary("/Applications/Yandex.app/Contents/MacOS/Yandex");
+        }
         options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
         driver = new ChromeDriver(options);
         driver.manage().window().maximize();
-        driver.get("https://stellarburgers.nomoreparties.site");
-        */
+        driver.get(BASE_URL);
 
-        //Для запуска Chrome браузера
-         String driverPath = getClass().getClassLoader().getResource("chromedriver").getPath();
-         System.setProperty("webdriver.chrome.driver", driverPath);
-         ChromeOptions options = new ChromeOptions();
-         options.addArguments("--no-sandbox", "--disable-dev-shm-usage");
-         driver = new ChromeDriver(options);
-         driver.manage().window().maximize();
-         driver.get("https://stellarburgers.nomoreparties.site");
-
-        // Установка базового URI для RestAssured
-        RestAssured.baseURI = "https://stellarburgers.nomoreparties.site";
         // Создание клиента для работы с API пользователей
         userClient = new UserClient();
 
