@@ -1,3 +1,6 @@
+import api.UserClient;
+import model.UserResponse;
+import model.User;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,6 +22,7 @@ public class RegistrationTest extends BaseTest {
     private String goodPassword;
     private String wrongPassword;
     private HeaderPage headerPage;
+
 
 
     @Before
@@ -48,13 +52,25 @@ public class RegistrationTest extends BaseTest {
         registrationPage.enterEmail(email);
         registrationPage.enterPassword(goodPassword);
         registrationPage.clickRegisterButton();
+
+        // Логин и получение токена
+        UserClient userClient = new UserClient();
+        User user = new User(name, email, goodPassword);
+        String token = userClient.loginUserAndGetToken(user);
+
         // Проверка, что можно авторизоваться созданным юзером
         loginPage.enterEmail(email);
         loginPage.enterPassword(goodPassword);
         loginPage.clickLoginButton();
         headerPage.clickOnPersonalAccountLink();
+
         // Проверки на странице профиля что мы авторизовались
         profilePage.verifyProfilePageElements();
+
+        // Удаление пользователя
+        userClient.deleteUser(token);
+
+
     }
 
     @Test
@@ -67,6 +83,8 @@ public class RegistrationTest extends BaseTest {
         registrationPage.clickRegisterButton();
         // Проверка наличия сообщения об ошибке
         registrationPage.verifyPasswordErrorMessage();
+
     }
+
 }
 

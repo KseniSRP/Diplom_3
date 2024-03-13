@@ -7,40 +7,35 @@ import model.User;
 import model.UserResponse;
 import org.hamcrest.CoreMatchers;
 
-public class UserClient {
+public class UserClient extends BaseAPI {
     private static final String REGISTER_ENDPOINT = "/api/auth/register";
+    private static final String LOGIN_ENDPOINT = "/api/auth/login";
     private static final String USER_ENDPOINT = "/api/auth/user";
 
     @Step("Создание пользователя")
     public UserResponse createUser(User user) {
-        // Отправляем запрос на создание пользователя
-        Response response = RestAssured.given()
-                .header("Content-Type", "application/json")
-                .body(user)
-                .when()
-                .post(REGISTER_ENDPOINT)
-                .then()
-                // Получаем ответ
-                .statusCode(200)
-                .body("success", CoreMatchers.equalTo(true))
-                .extract()
-                .response(); // Извлекаем полный ответ для дальнейшей работы
+        // Использую метод из BaseAPI для отправки запроса на создание пользователя
+        Response response = sendRequest("POST", REGISTER_ENDPOINT, user, null, 200);
 
-        // Извлекаем токен из ответа.
-        String accessToken = response.path("accessToken");
+        // Проверяю успешность, измлекаю токен
+        response.then().body("success", CoreMatchers.equalTo(true));
+        String accessToken = response.then().extract().path("accessToken");
 
-        // Возвращаем новый объект UserResponse, содержащий пользователя и токен
+        // Возвращаю UserResponse (пользователь и токен)
         return new UserResponse(user, accessToken);
     }
 
     @Step("Удаление пользователя")
     public void deleteUser(String accessToken) {
-        RestAssured.given()
-                .header("Authorization", accessToken) // Используем токен доступа в заголовке Authorization
-                .when()
-                .delete(USER_ENDPOINT)
-                .then()
-                .statusCode(202)
-                .body("success", CoreMatchers.equalTo(true));
+        // Использую метод из BaseAPI для отправки запроса на удаление пользователя
+        sendRequest("DELETE", USER_ENDPOINT, null, accessToken, 202)
+                .then().body("success", CoreMatchers.equalTo(true));
+    }
+
+    @Step("Логин пользователя и возвращение токена")
+    public String loginUserAndGetToken(User user) {
+        Response response = sendRequest("POST", LOGIN_ENDPOINT, user, null, 200);
+        response.then().body("success", CoreMatchers.equalTo(true));
+        return response.then().extract().path("accessToken");
     }
 }

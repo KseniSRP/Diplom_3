@@ -25,9 +25,9 @@ public class BaseTest {
     @Before
     public void setUp() {
 
-         final String BASE_URL = "https://stellarburgers.nomoreparties.site";
+        final String BASE_URL = "https://stellarburgers.nomoreparties.site";
         // Установка базового URI для RestAssured
-         RestAssured.baseURI = BASE_URL;
+        RestAssured.baseURI = BASE_URL;
 
         // Дефолтное значение для браузера
         String browserName = System.getProperty("browser", "chrome");
